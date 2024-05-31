@@ -1,13 +1,28 @@
-import React, { useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { AuthContext } from '../auth/AuthContext';
 
 export const LoginPage = () => {
+
+  const { login } = useContext(AuthContext);
 
   const [form, setForm] = useState({
     email:'test3@test.com',
     password:'1234',
     rememberme:false
   });
+
+  useEffect(() => {
+    const email = localStorage.getItem('email');
+    if (email){
+      setForm( (form) => ({  // al poner (form) => le estamos diciendo que es el valor actual que debe cambiar.
+        ...form,
+        email,
+        rememberme:true,
+      }))
+    }
+  }, [])
+  
 
   const onChange = ({target})=> {
     const {name,value} = target;
@@ -26,7 +41,13 @@ export const LoginPage = () => {
 
   const onSubmit = (ev)=> {
     ev.preventDefault();
-    console.log(form);
+
+    (form.rememberme) 
+      ? localStorage.setItem('email',form.email)
+      : localStorage.removeItem('email');
+
+    const  {email,password} = form;
+    login(email,password);
   }
 
   return (
