@@ -120,6 +120,7 @@ export const LoginPage = () => {
 
       <div className="container-login100-form-btn m-t-17">
         <button 
+          type="submit"
           className="login100-form-btn"
           disabled={!allOk()}
           >

@@ -2,7 +2,7 @@
 
 import React, { useCallback, useState } from 'react'
 import { createContext } from "react";
-import { fetchWithoutToken } from '../helpers/fetch';
+import { fetchWithToken, fetchWithoutToken } from '../helpers/fetch';
 
 export const AuthContext = createContext();
 
@@ -25,8 +25,6 @@ export const AuthProvider= ({children}) => {
       localStorage.setItem('token',resp.token);
       const { user } = resp;
 
-      console.log(user);
-
       setAuth({
         uid: user.uid,
         checking: false,
@@ -41,11 +39,73 @@ export const AuthProvider= ({children}) => {
     return resp.ok;
   }
 
-  const register = (name,email,password)=>{
+  const register = async (name,email,password)=>{
+    const resp = await fetchWithoutToken('login/new',{name,email,password},'POST');
+   
+    if (resp.ok){
+      localStorage.setItem('token',resp.token);
+      const { user } = resp;
 
+      setAuth({
+        uid: user.uid,
+        checking: false,
+        logged: true,
+        name: user.name,
+        email:user.email,
+      })
+
+      console.log('New User created');
+      return true;
+    }
+
+    return resp.msg;
   }
 
-  const verifyToken = useCallback( () => {
+  const verifyToken = useCallback( async() => {
+
+    const token = localStorage.getItem('token');
+
+    if (!token){
+      setAuth({
+        uid: null,
+        checking: false,
+        logged: false,
+        name: null,
+        email:null
+      });
+
+      return false;
+    }
+
+    const resp = await fetchWithToken('login/renew');
+    if (resp.ok){
+      localStorage.setItem('token',resp.token);
+      const { user } = resp;
+
+
+      setAuth({
+        uid: user.uid,
+        checking: false,
+        logged: true,
+        name: user.name,
+        email:user.email,
+      })
+
+      console.log('Authenticated after renew token');
+      
+      return true;
+
+    }else{
+      setAuth({
+        uid: null,
+        checking: false,
+        logged: false,
+        name: null,
+        email: null,
+      });
+      
+      return false;
+    }
 
   },[])
 
